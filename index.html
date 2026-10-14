@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam & Remuneration Software - Complete Manager</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+        body { display: flex; height: 100vh; background: #f4f6f9; color: #333; }
+        
+        /* ACTIVATION LOCK SCREEN OVERLAY */
+        #activationLockScreen {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center; z-index: 99999;
+        }
+        .activation-card {
+            background: #fff; padding: 25px; border-radius: 12px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center;
+        }
+
+        /* Sidebar Navigation */
+        #sidebar { width: 260px; background: #1e293b; color: white; display: flex; flex-direction: column; }
+        #sidebar h2 { padding: 15px; background: #0f172a; font-size: 14px; text-align: center; border-bottom: 1px solid #334155; }
+        #sidebar ul { list-style: none; overflow-y: auto; flex-grow: 1; }
+        #sidebar li { padding: 11px 16px; cursor: pointer; border-bottom: 1px solid #334155; font-size: 12px; transition: 0.2s; }
+        #sidebar li:hover, #sidebar li.active { background: #2563eb; font-weight: bold; }
+        
+        /* Main Layout */
+        #main-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .card { background: white; padding: 18px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        .card h3 { color: #1e293b; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Accordion Header */
+        .accordion-header { cursor: pointer; user-select: none; padding: 10px 12px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .accordion-header:hover { background: #f1f5f9; }
+        .accordion-content { display: none; margin-top: 12px; border-top: 1px dashed #cbd5e1; padding-top: 12px; }
+
+        /* Excel Header Box */
+        .excel-header-box { border: 2px solid #000; padding: 10px; background: #fff; margin-bottom: 12px; }
+        .excel-header-title { font-size: 16px; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 4px; }
+        .excel-header-subtitle { font-size: 14px; font-weight: bold; text-align: center; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 4px; }
+        .excel-header-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; font-size: 13px; font-weight: bold; }
+        
+        /* Form Grids */
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 11px; font-weight: bold; color: #475569; }
+        .form-group input, .form-group select { padding: 7px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 12px; }
+        
+        /* Excel Table Styling */
+        .table-responsive { overflow-x: auto; margin-top: 10px; }
+        table.excel-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: Arial, sans-serif; }
+        table.excel-table th, table.excel-table td { border: 1px solid #000; padding: 6px 8px; text-align: center; }
+        table.excel-table th { background: #f8fafc; font-weight: bold; text-transform: uppercase; }
+        td[contenteditable="true"] { background: #fffbeb; cursor: cell; }
+        td[contenteditable="true"]:focus { outline: 2px solid #2563eb; background: #fff; }
+
+        /* Buttons */
+        button { padding: 8px 14px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+        button:hover { background: #1d4ed8; }
+        button.print-btn { background: #059669; }
+        button.print-btn:hover { background: #047857; }
+        button.save-btn { background: #d97706; }
+        button.save-btn:hover { background: #b45309; }
+        button.show-btn { background: #0284c7; }
+        button.show-btn:hover { background: #0369a1; }
+        button.new-bill-btn { background: #16a34a; }
+        button.new-bill-btn:hover { background: #15803d; }
+        button.danger-btn { background: #dc2626; color: white; }
+        button.danger-btn:hover { background: #b91c1c; }
+        button.backup-btn { background: #7c3aed; color: white; }
+        button.backup-btn:hover { background: #6d28d9; }
+        .toggle-btn-badge { background: #0f172a; padding: 3px 8px; border-radius: 12px; font-size: 11px; color: #fff; }
+
+        /* CONTROLLER PANELS */
+        .bill-bar { background: #fef3c7; border: 1px solid #fcd34d; padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .shift-bar { background: #e0f2fe; border: 1px solid #7dd3fc; padding: 12px; border-radius: 8px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
+
+        /* PRINT FORMATTING */
+        @media print {
+            #sidebar, .no-print, #activationLockScreen { display: none !important; }
+            #main-content { padding: 0; width: 100%; }
+            .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+            .accordion-content { display: block !important; }
+            body { background: white; }
+            td[contenteditable="true"] { background: transparent; }
+            .excel-header-box { border: 2px solid #000; }
+            table.excel-table th, table.excel-table td { border: 1px solid #000 !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ACTIVATION LOCK SCREEN OVERLAY -->
+    <div id="activationLockScreen" style="display: none;">
+        <div class="activation-card" style="background: #fff; padding: 25px; border-radius: 12px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); text-align: center;">
+            <div style="padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+                <h2 style="font-size: 16px; font-weight: bold; color: #0f172a;">🔒 Software Activation Required</h2>
+                <p id="lockSubtitle" style="font-size: 11px; color: #dc2626; font-weight: 600; margin-top: 4px;">Demo Period Expired or Activation Needed</p>
+            </div>
+            
+            <div id="demoTimerBox" style="background: #fffbeb; border: 1px solid #fde68a; padding: 8px; border-radius: 8px; text-align: center; margin: 12px 0;">
+                <p style="font-size: 11px; font-weight: bold; color: #92400e;">⏳ डेमो समय शेष: <span id="demoTimerCountdown" style="font-family: monospace; font-size: 13px;">10:00</span></p>
+            </div>
+
+            <div style="background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; margin: 12px 0; text-align: left;">
+                <p style="font-size: 11px; font-weight: 600; color: #475569;">Your Device Machine ID:</p>
+                <div id="displayMachineId" style="font-size: 12px; font-family: monospace; font-weight: bold; color: #4f46e5; background: #fff; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1; user-select: all; text-align: center; margin-top: 4px;">Generating...</div>
+                <p style="font-size: 10px; color: #94a3b8; text-align: center; margin-top: 4px;">यह मशीन आईडी कॉपी करके डेवलपर को भेजें।</p>
+            </div>
+
+            <div style="text-align: left; margin-bottom: 12px;">
+                <label style="display: block; font-size: 11px; font-weight: bold; color: #334155; margin-bottom: 4px;">Enter Activation or Demo Key</label>
+                <input type="text" id="inputActivationKey" placeholder="KEY-XXXXX या DEMO-XXXXX..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1; font-size: 12px; font-family: monospace; text-transform: uppercase;">
+            </div>
+
+            <button onclick="verifyAndActivate()" style="width: 100%; background: #4f46e5; color: white; font-weight: bold; padding: 9px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Activate Software</button>
+
+            <!-- HIDDEN MASTER ADMIN PANEL (Click 3 times on footer text) -->
+            <div style="margin-top: 15px; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: left;">
+                <p onclick="openMasterAdminPanel()" style="font-size: 10px; color: #94a3b8; cursor: pointer; text-align: center; user-select: none;">System Protected by Ashok Security</p>
+                <div id="adminKeyBox" style="display: none; margin-top: 8px; background: #e0e7ff; padding: 10px; border-radius: 8px; border: 1px solid #c7d2fe;">
+                    <p style="font-size: 10px; font-weight: bold; color: #312e81; text-transform: uppercase; margin-bottom: 6px;">Master Admin Panel</p>
+                    <input type="password" id="adminPassword" placeholder="Admin Password" style="width: 100%; padding: 6px; font-size: 11px; border: 1px solid #a5b4fc; border-radius: 4px; margin-bottom: 6px;">
+                    <input type="text" id="targetMachineId" placeholder="Paste Client Machine ID" style="width: 100%; padding: 6px; font-size: 11px; font-family: monospace; border: 1px solid #a5b4fc; border-radius: 4px; margin-bottom: 6px;">
+                    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                        <button onclick="generateKeyForClient()" style="flex: 1; background: #059669; font-size: 10px; padding: 6px;">Full Key</button>
+                        <button onclick="generateDemoKeyForClient()" style="flex: 1; background: #d97706; font-size: 10px; padding: 6px;">Demo Key</button>
+                    </div>
+                    <button onclick="blockClientMachine()" style="width: 100%; background: #dc2626; font-size: 10px; padding: 6px;">Block Client</button>
+                    <div id="generatedKeyOutput" style="font-size: 11px; font-family: monospace; font-weight: bold; color: #0f172a; background: #fff; padding: 6px; border-radius: 4px; border: 1px solid #cbd5e1; display: none; margin-top: 6px; user-select: all;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <h2>EXAM & BILL SOFTWARE</h2>
+        <ul>
+            <li class="active" onclick="showSection('tab-master-entry')">Master Directory</li>
+            <li onclick="showSection('tab-daily-entry')">Daily Entry Sheet</li>
+            <li onclick="showSection('sheet-cs')">CS Sheet</li>
+            <li onclick="showSection('sheet-add-cs')">Additional CS Sheet</li>
+            <li onclick="showSection('sheet-asst-cs')">Assistant CS Sheet</li>
+            <li onclick="showSection('sheet-invigilator')">Invigilator Sheet</li>
+            <li onclick="showSection('sheet-campus-super')">Campus Supervisor Sheet</li>
+            <li onclick="showSection('sheet-mini-staff')">Ministerial Staff Sheet</li>
+            <li onclick="showSection('sheet-class-iv')">Class IV Employees</li>
+            <li onclick="showSection('sheet-ac-roll')">Acquittance Roll (AC Roll)</li>
+            <li onclick="showSection('tab-water-bill')">Water Bill Statement</li>
+            <li onclick="showSection('tab-summary')">Summary Sheet</li>
+        </ul>
+        <div style="padding:15px; border-top:1px solid #334155;" class="no-print">
+            <button style="width:100%; background:#dc2626;" onclick="lockAppForDemoExpiry()">LOCK / LOGOUT</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="main-content">
+
+        <!-- BILL CONTROLLER PANEL WITH IMPORT/EXPORT -->
+        <div class="bill-bar no-print">
+            <div class="form-group" style="flex:1; min-width:200px;">
+                <label style="color:#b45309; font-weight:bold;">CURRENT BILL / EXAM NAME (वर्तमान बिल का नाम):</label>
+                <input type="text" id="active-bill-title" value="B.A. III SEMESTER EXAM 2025" style="border:1px solid #f59e0b; font-weight:bold;">
+            </div>
+            <button class="save-btn" onclick="saveCurrentBillToStorage()">इस बिल को सेव करें</button>
+            <button class="new-bill-btn" onclick="createNewBill()">+ नया बिल बनाएं</button>
+            
+            <div class="form-group" style="flex:1; min-width:200px;">
+                <label style="color:#b45309; font-weight:bold;">SAVED BILLS LIST (पुराने बिल लोड करें):</label>
+                <select id="saved-bills-dropdown" onchange="loadSelectedBill()"></select>
+            </div>
+            <button class="danger-btn" onclick="deleteSelectedBill()">Delete Selected Bill</button>
+            
+            <!-- BACKUP BUTTONS FOR MULTI-SYSTEM TRANSFER -->
+            <div style="width:100%; border-top:1px dashed #f59e0b; padding-top:8px; margin-top:5px; display:flex; gap:10px; align-items:center;">
+                <span style="font-size:11px; font-weight:bold; color:#7c3aed;">[दूसरे सिस्टम में डेटा भेजने का ऑप्शन]:</span>
+                <button class="backup-btn" onclick="exportDataBackup()">📥 Backup Download (फाइल डाउनलोड करें)</button>
+                <button class="backup-btn" onclick="document.getElementById('import-file-input').click()">📤 Backup File Load (फाइल लोड करें)</button>
+                <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importDataBackup(event)">
+            </div>
+        </div>
+
+        <!-- 1. MASTER ENTRY TAB -->
+        <div id="tab-master-entry" class="section-block">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <h3>1. सेंटर व विश्वविद्यालय विवरण (Master Header Info)</h3>
+                    <button class="print-btn no-print" onclick="window.print()">Print Master</button>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>NAME OF UNIVERSITY / INSTITUTION:</label>
+                        <input type="text" id="univ-name" value="JAI NARAIN VYAS UNIVERSITY, JODHPUR" onchange="updateHeaderInfo()">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>NAME OF EXAM CENTRE:</label>
+                        <input type="text" id="center-name" value="GOVT. COLLEGE, BARMER - VN0071" onchange="updateHeaderInfo()">
+                    </div>
+                    <div class="form-group">
+                        <label>DEFAULT CLASS / EXAM:</label>
+                        <input type="text" id="exam-name" value="B.A.IIIrd SEMESTER" onchange="updateHeaderInfo()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- DESIGNATION MANAGER -->
+            <div class="card no-print" style="margin-top: 10px;">
+                <div class="accordion-header" onclick="toggleAccordion('desig-accordion-content', 'desig-icon')">
+                    <h3>
+                        <span>2. पद प्रबंधन (Designation Manager - High to Low Rate)</span>
+                        <span id="desig-icon" class="toggle-btn-badge">[+] Expand / खोलें</span>
+                    </h3>
+                </div>
+                <div id="desig-accordion-content" class="accordion-content">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>New Designation Name (पद का नाम):</label>
+                            <input type="text" id="new-desig-title" placeholder="उदा. WATERMAN / LAB ASST">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Rate/Remuneration (₹):</label>
+                            <input type="number" id="new-desig-rate" value="120">
+                        </div>
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button style="background:#16a34a;" onclick="addNewDesignation()">नया पद जोड़ें</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th>S.R. NO.</th>
+                                    <th>DESIGNATION NAME</th>
+                                    <th>DEFAULT RATE (₹)</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="designation-list-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MASTER STAFF DIRECTORY -->
+            <div class="card" style="margin-top: 10px;">
+                <div class="accordion-header no-print" onclick="toggleAccordion('staff-accordion-content', 'staff-icon')">
+                    <h3>
+                        <span>3. मास्टर स्टाफ डायरेक्टरी (Staff List)</span>
+                        <span id="staff-icon" class="toggle-btn-badge">[+] Expand / खोलें</span>
+                    </h3>
+                </div>
+                <div id="staff-accordion-content" class="accordion-content">
+                    <div class="form-grid no-print">
+                        <div class="form-group">
+                            <label>Staff Name:</label>
+                            <input type="text" id="master-staff-name" placeholder="नाम दर्ज करें...">
+                        </div>
+                        <div class="form-group">
+                            <label>Designation:</label>
+                            <select id="master-staff-rank" onchange="onRankChange()"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rate / Remuneration (₹):</label>
+                            <input type="number" id="master-staff-payment" value="500">
+                        </div>
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button onclick="addMasterStaff()">स्टाफ जोड़ें</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="excel-table">
+                            <thead>
+                                <tr>
+                                    <th>S.R. NO.</th>
+                                    <th>NAME</th>
+                                    <th>DESIGNATION</th>
+                                    <th>RATE (₹)</th>
+                                    <th class="no-print">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="master-staff-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. DAILY ENTRY TAB -->
+        <div id="tab-daily-entry" class="section-block" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                    <h3>Daily Remuneration Entry Sheet</h3>
+                    <div class="no-print" style="display:flex; gap:8px;">
+                        <button class="save-btn" onclick="saveActiveSession()">शिफ्ट सेव करें (Save Shift)</button>
+                        <button class="print-btn" onclick="window.print()">Print Sheet</button>
+                    </div>
+                </div>
+
+                <!-- SAVED SHIFTS DROPDOWN BAR -->
+                <div class="shift-bar no-print">
+                    <div class="form-group" style="flex:1; min-width:250px;">
+                        <label style="color:#0369a1; font-weight:bold;">SAVED SHIFTS DROPDOWN (सहेजी गई शिफ्ट्स देखें/खोलें):</label>
+                        <select id="saved-shifts-dropdown" onchange="loadShiftFromDropdown()"></select>
+                    </div>
+                    <button class="danger-btn" onclick="deleteSelectedShift()">Delete Selected Shift</button>
+                </div>
+
+                <!-- DATE & SHIFT SELECTOR -->
+                <div class="form-grid no-print" style="margin-bottom: 15px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <div class="form-group">
+                        <label style="color:#0369a1;">DATE:</label>
+                        <input type="text" id="daily-date" value="15/02/2025" placeholder="DD/MM/YYYY">
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#0369a1;">SHIFT:</label>
+                        <select id="daily-shift">
+                            <option value="MORNING">MORNING</option>
+                            <option value="NOON">NOON</option>
+                            <option value="AFTERNOON">AFTERNOON</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="justify-content: flex-end;">
+                        <button class="show-btn" onclick="filterAndShowSession()">डेटा लोड / शो करें (SHOW)</button>
+                    </div>
+                </div>
+
+                <!-- Session Extra Details -->
+                <div class="form-grid no-print" style="margin-bottom: 15px; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    <div class="form-group">
+                        <label>CLASS:</label>
+                        <input type="text" id="daily-class" value="B.A.IIIrd SEMESTER" oninput="updateHeaderInfo()">
+                    </div>
+                    <div class="form-group">
+                        <label>SUBJECT / WORK:</label>
+                        <input type="text" id="daily-subject" value="EXAMINATION WORK" oninput="updateHeaderInfo()">
+                    </div>
+                    <div class="form-group">
+                        <label>REGISTERED STUDENTS:</label>
+                        <input type="number" id="daily-students" value="150" oninput="updateHeaderInfo()">
+                    </div>
+                </div>
+
+                <!-- EXCEL PRINT HEADER BOX -->
+                <div class="excel-header-box">
+                    <div class="excel-header-title">
+                        <span id="lbl-univ-name">JAI NARAIN VYAS UNIVERSITY, JODHPUR</span>
+                    </div>
+                    <div class="excel-header-subtitle">
+                        NAME OF EXAM CENTRE : <span id="lbl-center-name">GOVT. COLLEGE, BARMER - VN0071</span>
+                    </div>
+                    <div class="excel-header-grid">
+                        <div>CLASS : <span id="lbl-class-name">B.A.IIIrd SEMESTER</span></div>
+                        <div style="text-align: center;">DATE : <span id="lbl-date">15/02/2025</span></div>
+                        <div style="text-align: right;">SHIFT : <span id="lbl-shift">MORNING</span></div>
+                    </div>
+                    <div class="excel-header-grid" style="margin-top: 5px;">
+                        <div style="grid-column: span 2;">SUBJECT : <span id="lbl-subject">EXAMINATION WORK</span></div>
+                        <div style="text-align: right;">REGISTERED COUNT :- <span id="lbl-students">150</span></div>
+                    </div>
+                </div>
+
+                <!-- Duty Staff Selection Control (Alphabetical Staff Dropdown) -->
+                <div class="form-grid no-print" style="margin-bottom: 10px; background:#f0fdf4; padding:10px; border-radius:6px; border:1px solid #bbf7d0;">
+                    <div class="form-group" style="flex:2;">
+                        <label style="color:#166534;">Select Staff (A to Z Sorted):</label>
+                        <select id="daily-staff-dropdown" onkeydown="handleEnterKeyDaily(event)">
+                            <option value="">-- चुनें --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="color:#166534;">DUTY / ROOM (खाली रहेगा):</label>
+                        <input type="text" id="daily-room-no" placeholder="Room No. / Special Duty" onkeydown="handleEnterKeyDaily(event)">
+                    </div>
+                    <div class="form-group" style="justify-content: flex-end;">
+                        <button style="background:#16a34a;" onclick="addStaffToDailyDuty()">ड्यूटी में जोडें (Enter)</button>
+                    </div>
+                </div>
+
+                <!-- EXCEL TABLE FOR CURRENT SHIFT ONLY -->
+                <div class="table-responsive">
+                    <table class="excel-table" id="daily-current-session-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2" style="width:50px;">S.R. NO.</th>
+                                <th rowspan="2">NAME</th>
+                                <th rowspan="2">DESIGNATION</th>
+                                <th rowspan="2">DUTY / ROOM</th>
+                                <th colspan="3">REMUNERATION & CONVEYANCE</th>
+                                <th rowspan="2" style="width:100px;">SIGNATURE</th>
+                                <th rowspan="2" class="no-print" style="width:40px;">ACTION</th>
+                            </tr>
+                            <tr>
+                                <th>REMU. (₹)</th>
+                                <th>CONV. (₹)</th>
+                                <th>TOTAL (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold; background:#f8fafc;">
+                                <td colspan="4" style="text-align:right;">TOTAL AMOUNT</td>
+                                <td id="tot-remu">0</td>
+                                <td id="tot-conv">0</td>
+                                <td id="tot-overall">0</td>
+                                <td></td>
+                                <td class="no-print"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. DYNAMIC SHEETS VIEW -->
+        <div id="dynamic-sheet-view" class="section-block" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 id="sheet-title">Report Sheet</h3>
+                    <button class="print-btn no-print" onclick="window.print()">Print Report</button>
+                </div>
+                <div style="text-align:center; margin-bottom: 15px; margin-top: 10px;">
+                    <h2 id="print-univ-header" style="font-size:16px; text-transform:uppercase;"></h2>
+                    <h3 id="print-center-header" style="font-size:14px; text-transform:uppercase; margin-top:3px;"></h3>
+                    <h4 id="print-role-header" style="font-weight:bold; margin-top:5px; text-decoration:underline; font-size:13px;"></h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="excel-table" id="role-data-table">
+                        <thead></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. WATER BILL TAB -->
+        <div id="tab-water-bill" class="section-block" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Water Bill Statement for Remuneration</h3>
+                    <button class="print-btn no-print" onclick="window.print()">Print Water Bill</button>
+                </div>
+                <div style="text-align:center; margin-bottom: 15px; margin-top: 10px;">
+                    <h2 id="wb-univ-header" style="font-size:16px; text-transform:uppercase;"></h2>
+                    <h3 style="font-size:14px; font-weight:bold; text-transform:uppercase; margin-top:4px; text-decoration:underline;">
+                        WATER BILL STATEMENT FOR REMUNERATION
+                    </h3>
+                    <div style="margin-top:8px; display:flex; justify-content:center; align-items:center; gap:8px;">
+                        <label style="font-weight:bold; font-size:13px;">EXAMINATION NAME:</label>
+                        <input type="text" id="wb-exam-title" style="font-size:13px; font-weight:bold; padding:4px 8px; border:1px solid #000; width:350px; text-align:center;" oninput="updateWbHeader()">
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="excel-table" id="wb-data-table">
+                        <thead>
+                            <tr>
+                                <th>S.R. NO.</th>
+                                <th>DATE</th>
+                                <th>SHIFT</th>
+                                <th>NO. OF STUDENTS</th>
+                                <th>AMOUNT PER STUDENT (₹)</th>
+                                <th>TOTAL AMOUNT (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold; background:#f8fafc;">
+                                <td colspan="3" style="text-align:right;">GRAND TOTAL</td>
+                                <td id="wb-tot-students">0</td>
+                                <td>-</td>
+                                <td id="wb-tot-amount">₹0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. SUMMARY SHEET TAB -->
+        <div id="tab-summary" class="section-block" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Shift-wise Staff Deployment Summary</h3>
+                    <button class="print-btn no-print" onclick="window.print()">Print Summary</button>
+                </div>
+                <div style="text-align:center; margin-bottom: 15px; margin-top: 10px;">
+                    <h2 id="summary-univ-header" style="font-size:16px; text-transform:uppercase;"></h2>
+                    <h3 id="summary-center-header" style="font-size:14px; text-transform:uppercase; margin-top:3px;"></h3>
+                    <h4 style="font-weight:bold; margin-top:5px; text-decoration:underline; font-size:13px;">EXAMINATION SHIFT-WISE STAFF SUMMARY SHEET</h4>
+                </div>
+                <div class="table-responsive">
+                    <table class="excel-table" id="summary-data-table">
+                        <thead>
+                            <tr id="summary-header-row"></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* --- SINGLE DEVICE ACTIVATION, 10-MIN DEMO KEY & BLOCK SYSTEM --- */
+        const SECRET_SALT = "JNVU_BILL_SECURE_2026_KEY";
+        const DEMO_DURATION_MS = 10 * 60 * 1000; // 10 Minutes
+
+        function getDeviceMachineId() {
+            let browserId = localStorage.getItem('jnvu_device_fingerprint');
+            if (!browserId) {
+                const raw = navigator.userAgent + screen.width + screen.height + navigator.language + Math.random();
+                let hash = 0;
+                for (let i = 0; i < raw.length; i++) {
+                    hash = ((hash << 5) - hash) + raw.charCodeAt(i);
+                    hash |= 0;
+                }
+                browserId = 'JNVU-' + Math.abs(hash).toString(36).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+                localStorage.setItem('jnvu_device_fingerprint', browserId);
+            }
+            return browserId;
+        }
+
+        // फुल टाइम एक्टिवेशन की (Full Access Key Generator)
+        function calculateValidKey(machineId) {
+            let hash = 0;
+            const combined = machineId + SECRET_SALT;
+            for (let i = 0; i < combined.length; i++) {
+                hash = ((hash << 5) - hash) + combined.charCodeAt(i);
+                hash |= 0;
+            }
+            return 'KEY-' + Math.abs(hash).toString(36).toUpperCase();
+        }
+
+        // मशीन विशिष्ट डेमो की जेनरेटर (Demo Key Generator for specific machine ID)
+        function calculateDemoKey(machineId) {
+            let hash = 0;
+            const combined = machineId + "DEMO_SALT_2026";
+            for (let i = 0; i < combined.length; i++) {
+                hash = ((hash << 5) - hash) + combined.charCodeAt(i);
+                hash |= 0;
+            }
+            return 'DEMO-' + Math.abs(hash).toString(36).toUpperCase();
+        }
+
+        let demoInterval = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const mId = getDeviceMachineId();
+            document.getElementById('displayMachineId').innerText = mId;
+
+            // 1. Check if machine is blocked by admin
+            let blockedMachines = JSON.parse(localStorage.getItem('jnvu_blocked_machines') || '[]');
+            if (blockedMachines.includes(mId)) {
+                lockAppForBlock("⛔ यह सॉफ्टवेयर एडमिन द्वारा ब्लॉक कर दिया गया है!");
+                return;
+            }
+
+            // 2. Check if Full Key or active Demo Key is saved
+            const savedKey = localStorage.getItem('jnvu_activated_key');
+            const expectedKey = calculateValidKey(mId);
+
+            if (savedKey === expectedKey) {
+                unlockApp();
+                return;
+            }
+
+            // Check if active demo key was used
+            const activeDemoKeySession = localStorage.getItem('jnvu_active_demo_key');
+            const expectedDemoKey = calculateDemoKey(mId);
+
+            if (activeDemoKeySession === expectedDemoKey) {
+                let demoStart = localStorage.getItem('jnvu_demo_start_time');
+                if (!demoStart) {
+                    demoStart = Date.now();
+                    localStorage.setItem('jnvu_demo_start_time', demoStart);
+                }
+                const elapsed = Date.now() - parseInt(demoStart);
+                const remaining = DEMO_DURATION_MS - elapsed;
+
+                if (remaining > 0) {
+                    unlockApp();
+                    startDemoCountdown(remaining);
+                    return;
+                }
+            }
+
+            // Default initial check
+            let demoStart = localStorage.getItem('jnvu_demo_start_time');
+            if (!demoStart) {
+                demoStart = Date.now();
+                localStorage.setItem('jnvu_demo_start_time', demoStart);
+                localStorage.setItem('jnvu_active_demo_key', expectedDemoKey);
+            }
+
+            const elapsed = Date.now() - parseInt(demoStart);
+            const remaining = DEMO_DURATION_MS - elapsed;
+
+            if (remaining > 0) {
+                unlockApp();
+                startDemoCountdown(remaining);
+            } else {
+                lockAppForDemoExpiry();
+            }
+        });
+
+        function startDemoCountdown(durationMs) {
+            let timeLeft = durationMs;
+            const timerBox = document.getElementById('demoTimerBox');
+            timerBox.style.display = 'block';
+            document.getElementById('activationLockScreen').style.display = 'none';
+
+            if(demoInterval) clearInterval(demoInterval);
+
+            demoInterval = setInterval(() => {
+                timeLeft -= 1000;
+                if (timeLeft <= 0) {
+                    clearInterval(demoInterval);
+                    lockAppForDemoExpiry();
+                } else {
+                    const mins = Math.floor(timeLeft / 60000);
+                    const secs = Math.floor((timeLeft % 60000) / 1000);
+                    document.getElementById('demoTimerCountdown').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                }
+            }, 1000);
+        }
+
+        function lockAppForDemoExpiry() {
+            document.getElementById('activationLockScreen').style.display = 'flex';
+            document.getElementById('demoTimerBox').style.display = 'none';
+            document.getElementById('lockSubtitle').innerText = "⏳ 10-मिनट का डेमो समाप्त! कृपया एक्टिवेशन की दर्ज करें।";
+        }
+
+        function lockAppForBlock(msg) {
+            document.getElementById('activationLockScreen').style.display = 'flex';
+            document.getElementById('demoTimerBox').style.display = 'none';
+            document.getElementById('lockSubtitle').innerText = msg;
+            document.getElementById('lockSubtitle').style.color = "#dc2626";
+            document.getElementById('inputActivationKey').disabled = true;
+        }
+
+        function verifyAndActivate() {
+            const enteredKey = document.getElementById('inputActivationKey').value.trim().toUpperCase();
+            const mId = getDeviceMachineId();
+            const validKey = calculateValidKey(mId);
+            const demoKey = calculateDemoKey(mId);
+
+            if (enteredKey === validKey) {
+                localStorage.setItem('jnvu_activated_key', validKey);
+                if (demoInterval) clearInterval(demoInterval);
+                alert('🎉 सॉफ्टवेयर इस डिवाइस के लिए हमेशा के लिए सफलतापूर्वक एक्टिवेट हो गया है!');
+                unlockApp();
+            } else if (enteredKey === demoKey) {
+                localStorage.setItem('jnvu_demo_start_time', Date.now());
+                localStorage.setItem('jnvu_active_demo_key', demoKey);
+                if (demoInterval) clearInterval(demoInterval);
+                alert('⏳ डेमो कोड स्वीकार कर लिया गया है! 10 मिनट का समय शुरू होता है।');
+                unlockApp();
+                startDemoCountdown(DEMO_DURATION_MS);
+            } else {
+                alert('❌ अमान्य एक्टिवेशन या डेमो की (Invalid Key)! कृपया सही की दर्ज करें।');
+            }
+        }
+
+        function unlockApp() {
+            document.getElementById('activationLockScreen').style.display = 'none';
+        }
+
+        // HIDDEN MASTER ADMIN PANEL TRIGGER (Click 3 times on footer text)
+        let adminClickCount = 0;
+        function openMasterAdminPanel() {
+            adminClickCount++;
+            if (adminClickCount >= 3) {
+                const box = document.getElementById('adminKeyBox');
+                box.style.display = box.style.display === 'block' ? 'none' : 'block';
+                adminClickCount = 0;
+            }
+        }
+
+        function generateKeyForClient() {
+            const pass = document.getElementById('adminPassword').value;
+            if (pass !== 'AshokSau@2050') {
+                alert('गलत एडमिन पासवर्ड!');
+                return;
+            }
+            const targetId = document.getElementById('targetMachineId').value.trim();
+            if (!targetId) {
+                alert('कृपया क्लाइंट की मशीन आईडी दर्ज करें!');
+                return;
+            }
+            const clientKey = calculateValidKey(targetId);
+            const outputEl = document.getElementById('generatedKeyOutput');
+            outputEl.innerText = "Full Key: " + clientKey;
+            outputEl.style.display = 'block';
+        }
+
+        function generateDemoKeyForClient() {
+            const pass = document.getElementById('adminPassword').value;
+            if (pass !== 'AshokSau@2050') {
+                alert('गलत एडमिन पासवर्ड!');
+                return;
+            }
+            const targetId = document.getElementById('targetMachineId').value.trim();
+            if (!targetId) {
+                alert('कृपया क्लाइंट की मशीन आईडी दर्ज करें!');
+                return;
+            }
+            const clientDemoKey = calculateDemoKey(targetId);
+            const outputEl = document.getElementById('generatedKeyOutput');
+            outputEl.innerText = "Demo Key (10 Mins): " + clientDemoKey;
+            outputEl.style.display = 'block';
+        }
+
+        function blockClientMachine() {
+            const pass = document.getElementById('adminPassword').value;
+            if (pass !== 'AshokSau@2050') {
+                alert('गलत एडमिन पासवर्ड!');
+                return;
+            }
+            const targetId = document.getElementById('targetMachineId').value.trim();
+            if (!targetId) {
+                alert('ब्लॉक करने के लिए मशीन आईडी दर्ज करें!');
+                return;
+            }
+            
+            let blockedMachines = JSON.parse(localStorage.getItem('jnvu_blocked_machines') || '[]');
+            if (!blockedMachines.includes(targetId)) {
+                blockedMachines.push(targetId);
+                localStorage.setItem('jnvu_blocked_machines', JSON.stringify(blockedMachines));
+                alert(`🚫 मशीन आईडी ${targetId} को सफलतापूर्वक ब्लॉक कर दिया गया है!`);
+            } else {
+                alert('यह मशीन पहले से ब्लॉक है।');
+            }
+        }
+
+        /* DATA STRUCTURES */
+        let masterDesignations = [
+            { name: "C.S.", rate: 500 },
+            { name: "ADD. C.S.", rate: 350 },
+            { name: "ASST. C.S.", rate: 300 },
+            { name: "INVIGILATOR", rate: 250 },
+            { name: "CAMPUS SUPERVISIOR", rate: 250 },
+            { name: "MINI. STAFF", rate: 160 },
+            { name: "ELECTRITION", rate: 160 },
+            { name: "PUMP CHALAK", rate: 160 },
+            { name: "CLASS- IV EMPLOYEE", rate: 120 },
+            { name: "CHOKIDAR", rate: 120 },
+            { name: "DAFTRI", rate: 120 }
+        ];
+
+        const SHIFT_ORDER = ["MORNING", "NOON", "AFTERNOON"];
+        const SHIFT_CODE = { "MORNING": "M", "NOON": "N", "AFTERNOON": "A" };
+
+        let masterStaffDirectory = [];
+        let currentSessionStaff = [];
+        let savedDailySessions = [];
+
+        let activeDate = "15/02/2025";
+        let activeShift = "MORNING";
+
+        let allSavedBillsStore = JSON.parse(localStorage.getItem("all_saved_bills")) || {};
+
+        window.onload = function() {
+            sortDesignations();
+            renderDesignationList();
+            populateRankDropdown();
+            updateHeaderInfo();
+            refreshSavedBillsDropdown();
+            refreshSavedShiftsDropdown();
+        };
+
+        /* EXPORT & IMPORT BACKUP SYSTEM FOR MULTI-COMPUTER USAGE */
+        function exportDataBackup() {
+            saveCurrentBillToStorage();
+            
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allSavedBillsStore, null, 2));
+            let downloadAnchor = document.createElement('a');
+            let today = new Date().toISOString().slice(0,10);
+            
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Exam_Bill_Software_Backup_${today}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            
+            alert("आपका पूरा बैकअप सफलतापूर्वक डाउनलोड हो गया है! आप इसे पेनड्राइव से किसी भी दूसरे कंप्यूटर में ले जा सकते हैं।");
+        }
+
+        function importDataBackup(event) {
+            let file = event.target.files[0];
+            if (!file) return;
+
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    let importedData = JSON.parse(e.target.result);
+                    if (typeof importedData === 'object' && importedData !== null) {
+                        if (confirm("क्या आप यह बैकअप लोड करना चाहते हैं? इससे इस सिस्टम के मौजूदा बिल अपडेट/मर्ज हो जाएँगे।")) {
+                            allSavedBillsStore = { ...allSavedBillsStore, ...importedData };
+                            localStorage.setItem("all_saved_bills", JSON.stringify(allSavedBillsStore));
+                            refreshSavedBillsDropdown();
+                            alert("बैकअप सफलतापूर्वक लोड हो गया है! ड्रॉपडाउन से अपना बिल चुनें।");
+                        }
+                    } else {
+                        alert("गलत फाइल फॉर्मेट!");
+                    }
+                } catch (err) {
+                    alert("फाइल रीड करने में त्रुटि! कृपया सही बैकअप (.json) फाइल चुनें।");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* MULTI-BILL STORAGE & DELETE MANAGER */
+        function saveCurrentBillToStorage() {
+            autoSaveCurrentWorkingSession();
+            let billTitle = document.getElementById('active-bill-title').value.trim();
+            if (!billTitle) { alert("कृपया बिल/परीक्षा का नाम दर्ज करें!"); return; }
+
+            let billData = {
+                title: billTitle,
+                univName: document.getElementById('univ-name').value,
+                centerName: document.getElementById('center-name').value,
+                examName: document.getElementById('exam-name').value,
+                masterDesignations: masterDesignations,
+                masterStaffDirectory: masterStaffDirectory,
+                savedDailySessions: savedDailySessions
+            };
+
+            allSavedBillsStore[billTitle] = billData;
+            localStorage.setItem("all_saved_bills", JSON.stringify(allSavedBillsStore));
+            refreshSavedBillsDropdown();
+            document.getElementById('saved-bills-dropdown').value = billTitle;
+        }
+
+        function createNewBill() {
+            saveCurrentBillToStorage();
+
+            let newTitle = prompt("नए बिल / परीक्षा का नाम दर्ज करें:");
+            if (!newTitle || newTitle.trim() === "") return;
+
+            document.getElementById('active-bill-title').value = newTitle.trim();
+            savedDailySessions = [];
+            currentSessionStaff = [];
+            
+            refreshSavedShiftsDropdown();
+            renderCurrentSessionTable();
+            alert(`नया बिल '${newTitle}' तैयार है! आप इसमें फ्रेश एंट्रीज कर सकते हैं।`);
+            saveCurrentBillToStorage();
+        }
+
+        function refreshSavedBillsDropdown() {
+            let select = document.getElementById('saved-bills-dropdown');
+            select.innerHTML = '<option value="">-- चुनें / Load Bill --</option>';
+            for (let bTitle in allSavedBillsStore) {
+                let opt = document.createElement('option');
+                opt.value = bTitle;
+                opt.innerText = bTitle;
+                select.appendChild(opt);
+            }
+        }
+
+        function loadSelectedBill() {
+            let selectedTitle = document.getElementById('saved-bills-dropdown').value;
+            if (!selectedTitle || !allSavedBillsStore[selectedTitle]) return;
+
+            let b = allSavedBillsStore[selectedTitle];
+            document.getElementById('active-bill-title').value = b.title;
+            document.getElementById('univ-name').value = b.univName || "";
+            document.getElementById('center-name').value = b.centerName || "";
+            document.getElementById('exam-name').value = b.examName || "";
+
+            masterDesignations = b.masterDesignations || masterDesignations;
+            masterStaffDirectory = b.masterStaffDirectory || [];
+            savedDailySessions = b.savedDailySessions || [];
+            currentSessionStaff = [];
+
+            renderDesignationList();
+            populateRankDropdown();
+            renderMasterStaffTable();
+            populateDailyDropdown();
+            refreshSavedShiftsDropdown();
+            filterAndShowSession();
+            alert(`बिल '${selectedTitle}' सफलतापूर्वक लोड हो गया है।`);
+        }
+
+        function deleteSelectedBill() {
+            let select = document.getElementById('saved-bills-dropdown');
+            let bTitle = select.value;
+            if (!bTitle) { alert("कृपया डिलीट करने के लिए ड्रॉपडाउन से बिल चुनें!"); return; }
+
+            if (confirm(`क्या आप बिल '${bTitle}' को स्थायी रूप से डिलीट करना चाहते हैं?`)) {
+                delete allSavedBillsStore[bTitle];
+                localStorage.setItem("all_saved_bills", JSON.stringify(allSavedBillsStore));
+                refreshSavedBillsDropdown();
+                alert(`बिल '${bTitle}' डिलीट कर दिया गया है।`);
+            }
+        }
+
+        /* SHIFT DROPDOWN & DELETE MANAGER */
+        function refreshSavedShiftsDropdown() {
+            let select = document.getElementById('saved-shifts-dropdown');
+            select.innerHTML = '<option value="">-- सहेजी गई शिफ्ट चुनें --</option>';
+            savedDailySessions.forEach((session, idx) => {
+                let opt = document.createElement('option');
+                opt.value = `${session.date}|${session.shift}`;
+                opt.innerText = `Date: ${session.date} | Shift: ${session.shift} | Class: ${session.className}`;
+                select.appendChild(opt);
+            });
+        }
+
+        function loadShiftFromDropdown() {
+            let val = document.getElementById('saved-shifts-dropdown').value;
+            if (!val) return;
+
+            let [d, s] = val.split('|');
+            document.getElementById('daily-date').value = d;
+            document.getElementById('daily-shift').value = s;
+            filterAndShowSession();
+        }
+
+        function deleteSelectedShift() {
+            let val = document.getElementById('saved-shifts-dropdown').value;
+            if (!val) { alert("कृपया डिलीट करने के लिए ड्रॉपडाउन से शिफ्ट चुनें!"); return; }
+
+            let [d, s] = val.split('|');
+            if (confirm(`क्या आप तारीख ${d} (${s}) की शिफ्ट एंट्री डिलीट करना चाहते हैं?`)) {
+                savedDailySessions = savedDailySessions.filter(item => !(item.date === d && item.shift === s));
+                if (activeDate === d && activeShift === s) {
+                    currentSessionStaff = [];
+                    renderCurrentSessionTable();
+                }
+                refreshSavedShiftsDropdown();
+                saveCurrentBillToStorage();
+                alert(`शिफ्ट ${d} (${s}) डिलीट कर दी गई है।`);
+            }
+        }
+
+        function toggleAccordion(contentId, iconId) {
+            let content = document.getElementById(contentId);
+            let icon = document.getElementById(iconId);
+            if (content.style.display === "block") {
+                content.style.display = "none";
+                icon.innerText = "[+] Expand / खोलें";
+            } else {
+                content.style.display = "block";
+                icon.innerText = "[-] Collapse / बंद करें";
+            }
+        }
+
+        function sortDesignations() {
+            masterDesignations.sort((a, b) => b.rate - a.rate);
+        }
+
+        /* --- DESIGNATION MANAGEMENT --- */
+        function renderDesignationList() {
+            sortDesignations();
+            let tbody = document.getElementById('designation-list-body');
+            tbody.innerHTML = "";
+            masterDesignations.forEach((d, idx) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td contenteditable="true" onblur="updateDesignation(${idx}, 'name', this.innerText)"><b>${d.name}</b></td>
+                    <td contenteditable="true" onblur="updateDesignation(${idx}, 'rate', this.innerText)">${d.rate}</td>
+                    <td><button class="danger-btn" onclick="deleteDesignation(${idx})">हटाएं</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function addNewDesignation() {
+            let titleInput = document.getElementById('new-desig-title');
+            let rateInput = document.getElementById('new-desig-rate');
+
+            let name = titleInput.value.trim().toUpperCase();
+            let rate = parseFloat(rateInput.value) || 0;
+
+            if (!name) { alert("कृपया पद का नाम दर्ज करें!"); return; }
+            if (masterDesignations.some(d => d.name === name)) { alert("यह पद पहले से मौजूद है!"); return; }
+
+            masterDesignations.push({ name: name, rate: rate });
+            titleInput.value = "";
+            renderDesignationList();
+            populateRankDropdown();
+        }
+
+        function updateDesignation(index, field, value) {
+            if (field === 'rate') masterDesignations[index].rate = parseFloat(value) || 0;
+            else if (field === 'name') masterDesignations[index].name = value.trim().toUpperCase();
+            renderDesignationList();
+            populateRankDropdown();
+        }
+
+        function deleteDesignation(index) {
+            if (confirm(`क्या आप '${masterDesignations[index].name}' पद को हटाना चाहते हैं?`)) {
+                masterDesignations.splice(index, 1);
+                renderDesignationList();
+                populateRankDropdown();
+            }
+        }
+
+        function populateRankDropdown() {
+            let select = document.getElementById('master-staff-rank');
+            select.innerHTML = "";
+            masterDesignations.forEach(d => {
+                let opt = document.createElement('option');
+                opt.value = d.name;
+                opt.innerText = `${d.name} (₹${d.rate})`;
+                select.appendChild(opt);
+            });
+            onRankChange();
+        }
+
+        function onRankChange() {
+            let rankKey = document.getElementById('master-staff-rank').value;
+            let found = masterDesignations.find(d => d.name === rankKey);
+            document.getElementById('master-staff-payment').value = found ? found.rate : 120;
+        }
+
+        function handleEnterKeyDaily(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                addStaffToDailyDuty();
+            }
+        }
+
+        function updateHeaderInfo() {
+            document.getElementById('lbl-univ-name').innerText = document.getElementById('univ-name').value;
+            document.getElementById('lbl-center-name').innerText = document.getElementById('center-name').value;
+            document.getElementById('lbl-class-name').innerText = document.getElementById('daily-class').value;
+            document.getElementById('lbl-date').innerText = document.getElementById('daily-date').value;
+            document.getElementById('lbl-shift').innerText = document.getElementById('daily-shift').value;
+            document.getElementById('lbl-subject').innerText = document.getElementById('daily-subject').value;
+            document.getElementById('lbl-students').innerText = document.getElementById('daily-students').value;
+            
+            document.getElementById('wb-univ-header').innerText = document.getElementById('univ-name').value;
+            document.getElementById('wb-exam-title').value = document.getElementById('exam-name').value;
+        }
+
+        function updateWbHeader() {
+            document.getElementById('exam-name').value = document.getElementById('wb-exam-title').value;
+        }
+
+        function filterAndShowSession() {
+            autoSaveCurrentWorkingSession();
+
+            activeDate = document.getElementById('daily-date').value.trim();
+            activeShift = document.getElementById('daily-shift').value;
+
+            let existingSession = savedDailySessions.find(s => s.date === activeDate && s.shift === activeShift);
+
+            if (existingSession) {
+                document.getElementById('daily-class').value = existingSession.className;
+                document.getElementById('daily-subject').value = existingSession.subject;
+                document.getElementById('daily-students').value = existingSession.students;
+                currentSessionStaff = [...existingSession.staffList];
+            } else {
+                currentSessionStaff = [];
+            }
+
+            recalculateDailyConveyanceForDate(activeDate);
+            updateHeaderInfo();
+            renderCurrentSessionTable();
+        }
+
+        function autoSaveCurrentWorkingSession() {
+            if (currentSessionStaff.length === 0) return;
+
+            let existingIdx = savedDailySessions.findIndex(s => s.date === activeDate && s.shift === activeShift);
+            let sessionData = {
+                id: existingIdx !== -1 ? savedDailySessions[existingIdx].id : Date.now(),
+                date: activeDate,
+                shift: activeShift,
+                className: document.getElementById('daily-class').value,
+                subject: document.getElementById('daily-subject').value,
+                students: parseFloat(document.getElementById('daily-students').value) || 0,
+                staffList: [...currentSessionStaff]
+            };
+
+            if (existingIdx !== -1) {
+                savedDailySessions[existingIdx] = sessionData;
+            } else {
+                savedDailySessions.push(sessionData);
+            }
+            recalculateDailyConveyanceForDate(activeDate);
+            refreshSavedShiftsDropdown();
+        }
+
+        function saveActiveSession() {
+            if (currentSessionStaff.length === 0) {
+                alert("शीट खाली है! डेटा जोड़ने के बाद सेव करें।");
+                return;
+            }
+            autoSaveCurrentWorkingSession();
+            saveCurrentBillToStorage();
+            alert(`तारीख ${activeDate} (${activeShift}) की एंट्री सफलतापूर्वक सहेज ली गई है।`);
+        }
+
+        /* --- MASTER STAFF DIRECTORY --- */
+        function addMasterStaff() {
+            let nameInput = document.getElementById('master-staff-name');
+            let rankInput = document.getElementById('master-staff-rank');
+            let paymentInput = document.getElementById('master-staff-payment');
+
+            let name = nameInput.value.trim();
+            let rank = rankInput.value;
+            let payment = parseFloat(paymentInput.value) || 0;
+
+            if (!name) { alert("कृपया स्टाफ का नाम लिखें"); return; }
+
+            let staffObj = { id: Date.now(), name: name, rank: rank, rate: payment };
+            masterStaffDirectory.push(staffObj);
+
+            nameInput.value = "";
+            nameInput.focus();
+            
+            renderMasterStaffTable();
+            populateDailyDropdown();
+        }
+
+        function renderMasterStaffTable() {
+            masterStaffDirectory.sort((a, b) => b.rate - a.rate);
+            let tbody = document.getElementById('master-staff-table-body');
+            tbody.innerHTML = "";
+            masterStaffDirectory.forEach((item, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td contenteditable="true" onblur="updateStaffField(${item.id}, 'name', this.innerText)"><b>${item.name}</b></td>
+                    <td contenteditable="true" onblur="updateStaffField(${item.id}, 'rank', this.innerText)">${item.rank}</td>
+                    <td contenteditable="true" onblur="updateStaffField(${item.id}, 'rate', this.innerText)">${item.rate}</td>
+                    <td class="no-print"><button class="danger-btn" onclick="removeMasterStaff(${item.id})">हटाएं</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateStaffField(id, field, value) {
+            let staff = masterStaffDirectory.find(s => s.id === id);
+            if (staff) {
+                if (field === 'rate') staff.rate = parseFloat(value) || 0;
+                else if (field === 'name') staff.name = value.trim();
+                else if (field === 'rank') staff.rank = value.trim().toUpperCase();
+                renderMasterStaffTable();
+                populateDailyDropdown();
+            }
+        }
+
+        function removeMasterStaff(id) {
+            masterStaffDirectory = masterStaffDirectory.filter(s => s.id !== id);
+            renderMasterStaffTable();
+            populateDailyDropdown();
+        }
+
+        /* A TO Z SORTED STAFF DROPDOWN FOR DAILY DUTY */
+        function populateDailyDropdown() {
+            let sortedStaff = [...masterStaffDirectory].sort((a, b) => a.name.localeCompare(b.name));
+            
+            let select = document.getElementById('daily-staff-dropdown');
+            select.innerHTML = '<option value="">-- चुनें --</option>';
+            sortedStaff.forEach(staff => {
+                let opt = document.createElement('option');
+                opt.value = staff.id;
+                opt.innerText = `${staff.name} (${staff.rank}) - ₹${staff.rate}`;
+                select.appendChild(opt);
+            });
+        }
+
+        /* --- CONVEYANCE CALCULATOR (SPECIAL CHOKIDAR RULE) --- */
+        function recalculateDailyConveyanceForDate(targetDate) {
+            let daySessions = savedDailySessions.filter(s => s.date === targetDate);
+
+            let allSessionsForDate = [...daySessions];
+            let activeIdx = allSessionsForDate.findIndex(s => s.shift === activeShift);
+            if (activeIdx !== -1) {
+                allSessionsForDate[activeIdx] = {
+                    date: targetDate,
+                    shift: activeShift,
+                    staffList: currentSessionStaff
+                };
+            } else if (currentSessionStaff.length > 0) {
+                allSessionsForDate.push({
+                    date: targetDate,
+                    shift: activeShift,
+                    staffList: currentSessionStaff
+                });
+            }
+
+            allSessionsForDate.sort((a, b) => SHIFT_ORDER.indexOf(a.shift) - SHIFT_ORDER.indexOf(b.shift));
+
+            let staffDutySequenceMap = {};
+
+            allSessionsForDate.forEach(session => {
+                session.staffList.forEach(st => {
+                    let seq = (staffDutySequenceMap[st.staffId] || 0) + 1;
+                    staffDutySequenceMap[st.staffId] = seq;
+
+                    if (st.rank === "CHOKIDAR") {
+                        st.conv = 0;
+                    } else {
+                        if (seq === 1) st.conv = 0;
+                        else if (seq >= 2) st.conv = 50;
+                    }
+                    st.total = st.remu + st.conv;
+                });
+            });
+        }
+
+        /* --- ADD DUTY --- */
+        function addStaffToDailyDuty() {
+            let selectElem = document.getElementById('daily-staff-dropdown');
+            let roomInput = document.getElementById('daily-room-no');
+            let staffId = selectElem.value;
+            
+            if (!staffId) { alert("कृपया ड्रॉपडाउन से स्टाफ चुनें"); return; }
+
+            let staff = masterStaffDirectory.find(s => s.id == staffId);
+
+            let isAlreadyAdded = currentSessionStaff.some(s => s.staffId == staff.id);
+            if (isAlreadyAdded) {
+                alert(`[ERROR]: '${staff.name}' की एंट्री इस तारीख/शिफ्ट में पहले से दर्ज है!`);
+                return;
+            }
+
+            let roomNo = roomInput.value.trim();
+
+            let dutyItem = {
+                staffId: staff.id,
+                name: staff.name,
+                rank: staff.rank,
+                roomNo: roomNo,
+                remu: staff.rate,
+                conv: 0,
+                total: staff.rate
+            };
+
+            currentSessionStaff.push(dutyItem);
+            currentSessionStaff.sort((a, b) => b.remu - a.remu);
+
+            recalculateDailyConveyanceForDate(activeDate);
+            renderCurrentSessionTable();
+
+            roomInput.value = "";
+            selectElem.value = "";
+            selectElem.focus();
+        }
+
+        function renderCurrentSessionTable() {
+            let tbody = document.querySelector('#daily-current-session-table tbody');
+            tbody.innerHTML = "";
+            let sumRemu = 0, sumConv = 0, sumTotal = 0;
+
+            currentSessionStaff.forEach((item, idx) => {
+                item.total = (parseFloat(item.remu) || 0) + (parseFloat(item.conv) || 0);
+                
+                sumRemu += item.remu;
+                sumConv += item.conv;
+                sumTotal += item.total;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td contenteditable="true" style="text-align:left;"><b>${item.name}</b></td>
+                    <td contenteditable="true">${item.rank}</td>
+                    <td contenteditable="true">${item.roomNo}</td>
+                    <td contenteditable="true" onblur="updateRowVal(${idx}, 'remu', this.innerText)">${item.remu}</td>
+                    <td contenteditable="true" onblur="updateRowVal(${idx}, 'conv', this.innerText)">${item.conv}</td>
+                    <td><b>${item.total}</b></td>
+                    <td></td>
+                    <td class="no-print"><button class="danger-btn" style="padding:2px 6px; font-size:10px;" onclick="removeDutyStaff(${idx})">X</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('tot-remu').innerText = sumRemu;
+            document.getElementById('tot-conv').innerText = sumConv;
+            document.getElementById('tot-overall').innerText = sumTotal;
+        }
+
+        function updateRowVal(idx, field, val) {
+            let num = parseFloat(val) || 0;
+            if (field === 'remu') currentSessionStaff[idx].remu = num;
+            if (field === 'conv') currentSessionStaff[idx].conv = num;
+            renderCurrentSessionTable();
+        }
+
+        function removeDutyStaff(idx) {
+            currentSessionStaff.splice(idx, 1);
+            recalculateDailyConveyanceForDate(activeDate);
+            renderCurrentSessionTable();
+        }
+
+        /* --- NAVIGATION --- */
+        function showSection(key) {
+            document.querySelectorAll('#sidebar li').forEach(li => li.classList.remove('active'));
+            if(event) event.currentTarget.classList.add('active');
+
+            document.querySelectorAll('.section-block').forEach(el => el.style.display = 'none');
+
+            if (key === 'tab-master-entry') {
+                document.getElementById('tab-master-entry').style.display = 'block';
+            } else if (key === 'tab-daily-entry') {
+                document.getElementById('tab-daily-entry').style.display = 'block';
+                updateHeaderInfo();
+            } else if (key === 'tab-water-bill') {
+                document.getElementById('tab-water-bill').style.display = 'block';
+                renderWaterBillReport();
+            } else if (key === 'tab-summary') {
+                document.getElementById('tab-summary').style.display = 'block';
+                renderSummaryReport();
+            } else {
+                document.getElementById('dynamic-sheet-view').style.display = 'block';
+                renderRoleReport(key);
+            }
+        }
+
+        /* --- WATER BILL STATEMENT GENERATOR --- */
+        function renderWaterBillReport() {
+            autoSaveCurrentWorkingSession();
+
+            document.getElementById('wb-univ-header').innerText = document.getElementById('univ-name').value;
+            document.getElementById('wb-exam-title').value = document.getElementById('exam-name').value;
+
+            let tbody = document.querySelector('#wb-data-table tbody');
+            tbody.innerHTML = "";
+
+            let totalStudentsCount = 0;
+            let grandTotalBill = 0;
+
+            savedDailySessions.forEach((session, idx) => {
+                let stCount = parseFloat(session.students) || 0;
+                let calculatedBill = stCount * 0.40;
+                let finalShiftBill = Math.max(60, calculatedBill);
+
+                totalStudentsCount += stCount;
+                grandTotalBill += finalShiftBill;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${idx + 1}</td>
+                    <td><b>${session.date}</b></td>
+                    <td><b>${session.shift}</b></td>
+                    <td contenteditable="true" onblur="updateWaterBillStudents('${session.date}', '${session.shift}', this.innerText)">${stCount}</td>
+                    <td>₹0.40</td>
+                    <td><b>₹${finalShiftBill.toFixed(2)}</b></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('wb-tot-students').innerText = totalStudentsCount;
+            document.getElementById('wb-tot-amount').innerText = `₹${grandTotalBill.toFixed(2)}`;
+        }
+
+        function updateWaterBillStudents(date, shift, newVal) {
+            let session = savedDailySessions.find(s => s.date === date && s.shift === shift);
+            if (session) {
+                session.students = parseFloat(newVal) || 0;
+                renderWaterBillReport();
+            }
+        }
+
+        /* --- ROLE REPORTS & RANK-WISE AC ROLL --- */
+        function renderRoleReport(roleKey) {
+            autoSaveCurrentWorkingSession();
+
+            document.getElementById('print-univ-header').innerText = document.getElementById('univ-name').value;
+            document.getElementById('print-center-header').innerText = "NAME OF EXAM CENTRE : " + document.getElementById('center-name').value;
+
+            let thead = document.querySelector('#role-data-table thead');
+            let tbody = document.querySelector('#role-data-table tbody');
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            let isAcRoll = (roleKey === 'sheet-ac-roll');
+            let roleMapKeys = {
+                'sheet-cs': ['C.S.'],
+                'sheet-add-cs': ['ADD. C.S.'],
+                'sheet-asst-cs': ['ASST. C.S.'],
+                'sheet-invigilator': ['INVIGILATOR'],
+                'sheet-campus-super': ['CAMPUS SUPERVISIOR'],
+                'sheet-mini-staff': ['MINI. STAFF'],
+                'sheet-class-iv': ['CLASS- IV EMPLOYEE', 'CHOKIDAR', 'DAFTRI', 'ELECTRITION', 'PUMP CHALAK']
+            };
+
+            let targetKeys = roleMapKeys[roleKey] || [];
+            let titleText = isAcRoll ? "Acquittance Roll (AC Roll)" : (event ? event.currentTarget.innerText : "Report Sheet");
+            
+            document.getElementById('sheet-title').innerText = titleText;
+            document.getElementById('print-role-header').innerText = isAcRoll ? "ACQUITTANCE ROLL STATEMENT" : ("STATEMENT FOR " + titleText.toUpperCase());
+
+            thead.innerHTML = `
+                <tr>
+                    <th>S.R. NO.</th>
+                    <th>NAME</th>
+                    <th>DESIGNATION</th>
+                    ${isAcRoll ? '' : '<th>DUTY DATES & SHIFT</th>'}
+                    <th>TOTAL DAYS / SHIFTS</th>
+                    <th>REMU. (₹)</th>
+                    <th>CONV. (₹)</th>
+                    <th>TOTAL AMOUNT (₹)</th>
+                    ${isAcRoll ? '<th>SIGNATURE</th>' : ''}
+                </tr>
+            `;
+
+            let map = {};
+
+            savedDailySessions.forEach(session => {
+                let sessionDate = session.date;
+                let sCode = SHIFT_CODE[session.shift] || session.shift.charAt(0);
+
+                session.staffList.forEach(st => {
+                    if (isAcRoll || targetKeys.includes(st.rank)) {
+                        if (!map[st.staffId]) {
+                            map[st.staffId] = { 
+                                name: st.name, 
+                                rank: st.rank, 
+                                remuRate: st.remu, 
+                                totalDuties: 0, 
+                                totalConv: 0,
+                                uniqueDates: new Set(),
+                                dutyFormattedList: [] 
+                            };
+                        }
+                        
+                        map[st.staffId].totalDuties += 1;
+                        map[st.staffId].uniqueDates.add(sessionDate);
+                        map[st.staffId].totalConv += (st.conv || 0);
+                        map[st.staffId].dutyFormattedList.push(`${sessionDate}(${sCode})`);
+                    }
+                });
+            });
+
+            let staffListArray = Object.values(map);
+            staffListArray.sort((a, b) => b.remuRate - a.remuRate);
+
+            let sno = 1;
+            staffListArray.forEach(st => {
+                let totalUnits = (st.rank === "CHOKIDAR") ? st.uniqueDates.size : st.totalDuties;
+                let totalRemu = totalUnits * st.remuRate;
+                let totalConv = st.totalConv;
+                let totalAmount = totalRemu + totalConv;
+                let dutyDatesStr = st.dutyFormattedList.join(", ");
+
+                let tr = document.createElement('tr');
+                if (isAcRoll) {
+                    tr.innerHTML = `
+                        <td>${sno++}</td>
+                        <td contenteditable="true" style="text-align:left;"><b>${st.name}</b></td>
+                        <td contenteditable="true">${st.rank}</td>
+                        <td contenteditable="true">${totalUnits} ${st.rank === "CHOKIDAR" ? "Days" : "Shifts"}</td>
+                        <td contenteditable="true">${totalRemu}</td>
+                        <td contenteditable="true">${totalConv}</td>
+                        <td><b>${totalAmount}</b></td>
+                        <td style="width:120px;"></td>
+                    `;
+                } else {
+                    tr.innerHTML = `
+                        <td>${sno++}</td>
+                        <td contenteditable="true" style="text-align:left;"><b>${st.name}</b></td>
+                        <td contenteditable="true">${st.rank}</td>
+                        <td contenteditable="true" style="font-size:11px;">${dutyDatesStr}</td>
+                        <td contenteditable="true">${totalUnits} ${st.rank === "CHOKIDAR" ? "Days" : "Shifts"}</td>
+                        <td contenteditable="true">${totalRemu}</td>
+                        <td contenteditable="true">${totalConv}</td>
+                        <td><b>${totalAmount}</b></td>
+                    `;
+                }
+                tbody.appendChild(tr);
+            });
+        }
+
+        /* --- SUMMARY SHEET GENERATOR --- */
+        function renderSummaryReport() {
+            autoSaveCurrentWorkingSession();
+
+            document.getElementById('summary-univ-header').innerText = document.getElementById('univ-name').value;
+            document.getElementById('summary-center-header').innerText = "NAME OF EXAM CENTRE : " + document.getElementById('center-name').value;
+
+            let headerRow = document.getElementById('summary-header-row');
+            let tbody = document.querySelector('#summary-data-table tbody');
+            
+            let headerHTML = `<th>DATE</th><th>SHIFT</th>`;
+            masterDesignations.forEach(d => {
+                headerHTML += `<th>${d.name}</th>`;
+            });
+            headerHTML += `<th>TOTAL STAFF</th><th>TOTAL REMU. (₹)</th><th>TOTAL CONV. (₹)</th><th>TOTAL AMOUNT (₹)</th>`;
+            headerRow.innerHTML = headerHTML;
+
+            tbody.innerHTML = "";
+
+            savedDailySessions.forEach(session => {
+                let counts = {};
+                masterDesignations.forEach(d => { counts[d.name] = 0; });
+
+                let shiftRemu = 0;
+                let shiftConv = 0;
+
+                session.staffList.forEach(st => {
+                    if (counts[st.rank] !== undefined) {
+                        counts[st.rank]++;
+                    }
+                    shiftRemu += st.remu;
+                    shiftConv += (st.conv || 0);
+                });
+
+                let totalStaffInShift = session.staffList.length;
+                let shiftTotalAmount = shiftRemu + shiftConv;
+
+                let tr = document.createElement('tr');
+                let rowHTML = `<td><b>${session.date}</b></td><td><b>${session.shift}</b></td>`;
+                
+                masterDesignations.forEach(d => {
+                    rowHTML += `<td>${counts[d.name] || 0}</td>`;
+                });
+
+                rowHTML += `
+                    <td><b>${totalStaffInShift}</b></td>
+                    <td>${shiftRemu}</td>
+                    <td>${shiftConv}</td>
+                    <td><b>₹${shiftTotalAmount}</b></td>
+                `;
+                tr.innerHTML = rowHTML;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
